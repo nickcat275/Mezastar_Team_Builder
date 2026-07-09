@@ -46,6 +46,38 @@
         .type-Rock { background-color: #B6A136; } .type-Ghost { background-color: #705746; }
         .type-Dragon { background-color: #6F35FC; } .type-Dark { background-color: #705746; }
         .type-Steel { background-color: #B7B7CE; } .type-Fairy { background-color: #D685AD; }
+
+        /* Watermark bên lề TRÁI */
+        body::before {
+            content: "Developed by -Vu Luca-";
+            position: fixed;
+            left: 20px;                 /* Cố định sát mép trái */
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg); /* Xoay dọc chữ theo viền màn hình */
+            font-size: 1.5rem;          /* Thu nhỏ kích thước cho vừa viền lề */
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+            color: rgba(0, 0, 0, 0.3);  /* Độ mờ 30% */
+            pointer-events: none;
+            z-index: 9999;
+            white-space: nowrap;
+        }
+
+        /* Watermark bên lề PHẢI */
+        body::after {
+            content: "Developed by -Vu Luca-";
+            position: fixed;
+            right: 20px;                /* Cố định sát mép phải */
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);  /* Xoay dọc chữ xuôi theo viền màn hình */
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+            color: rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 9999;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
