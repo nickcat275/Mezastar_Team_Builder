@@ -331,81 +331,92 @@
     }
 
     function calculateBestTeam() {
-        const oppCodes = [
-            document.getElementById('opp-1').value,
-            document.getElementById('opp-2').value,
-            document.getElementById('opp-3').value,
-            document.getElementById('opp-4').value
-        ].filter(code => code !== "");
+    const oppCodes = [
+        document.getElementById('opp-1').value,
+        document.getElementById('opp-2').value,
+        document.getElementById('opp-3').value,
+        document.getElementById('opp-4').value
+    ].filter(code => code !== "");
 
-        if (oppCodes.length === 0) {
-            alert("Vui lòng chọn ít nhất 1 Pokémon đối thủ!");
-            return;
-        }
-
-        const opponents = oppCodes.map(code => pokemonData.find(p => p.serialCode === code));
-        
-        const versionSelect = document.getElementById('filter-version');
-        const currentWeight = parseInt(versionSelect.dataset.weight) || 99;
-        const allowSpecial = document.getElementById('allow-special').checked;
-
-        // LOGIC LỌC ĐỘI HÌNH PHE TA: GIỮ LẠI R, CHỈ LỌC BỎ P VÀ L KHI KHÔNG CHO PHÉP
-        let validAttackers = pokemonData.filter(p => {
-            let prefix = p.serialCode.toUpperCase().charAt(0);
-            let isPromo = (prefix === 'P');
-            let isLegacyCard = (p.isLegacy || prefix === 'L');
-            
-            if (!allowSpecial) {
-                if (isPromo || isLegacyCard) {
-                    return false; // Loại bỏ Promo và Legacy
-                }
-            }
-            
-            if (isLegacyCard && currentWeight < 5) {
-                return false; 
-            }
-            
-            // Thẻ mã R (Regular) hoặc các thẻ thường có weight hợp lệ đều được giữ lại
-            return isPromo || prefix === 'R' || p.weight <= currentWeight;
-        });
-
-        let scoredPokemon = validAttackers.map(attacker => {
-            let totalDamageScore = 0;
-            let attackerLogs = [];
-
-            opponents.forEach(defender => {
-                let attackStat = (attacker.moveCategory === 'Special') ? attacker.spa : attacker.atk;
-                let defenseStat = (attacker.moveCategory === 'Special') ? defender.spd : defender.def;
-
-                if (attackStat === 0) attackStat = 10;
-                if (defenseStat === 0) defenseStat = 10;
-
-                let m1 = getModifier(attacker.moveType, defender.type1);
-                let m2 = defender.type2 ? getModifier(attacker.moveType, defender.type2) : 1;
-                let finalModifier = m1 * m2;
-
-                let singleDamage = Math.round((attackStat / defenseStat) * 50 * finalModifier);
-                totalDamageScore += singleDamage;
-
-                attackerLogs.push({
-                    defName: defender.name,
-                    defSerial: defender.serialCode,
-                    atkStat: attackStat,
-                    defStat: defenseStat,
-                    mod: finalModifier,
-                    dmg: singleDamage
-                });
-            });
-
-            return { ...attacker, score: totalDamageScore, logs: attackerLogs };
-        });
-
-        scoredPokemon.sort((a, b) => b.score - a.score);
-        let best3 = scoredPokemon.slice(0, 3);
-
-        displayResults(best3);
-        renderFormulaLog(best3);
+    if (oppCodes.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 Pokémon đối thủ!");
+        return;
     }
+
+    const opponents = oppCodes.map(code => pokemonData.find(p => p.serialCode === code));
+    
+    const versionSelect = document.getElementById('filter-version');
+    const currentWeight = parseInt(versionSelect.dataset.weight) || 99;
+    const allowSpecial = document.getElementById('allow-special').checked;
+
+    let validAttackers = pokemonData.filter(p => {
+        let prefix = p.serialCode.toUpperCase().charAt(0);
+        let isPromo = (prefix === 'P');
+        let isLegacyCard = (p.isLegacy || prefix === 'L');
+        
+        if (!allowSpecial) {
+            if (isPromo || isLegacyCard) return false;
+        }
+        if (isLegacyCard && currentWeight < 5) return false; 
+        
+        return isPromo || prefix === 'R' || p.weight <= currentWeight;
+    });
+
+    let scoredPokemon = validAttackers.map(attacker => {
+        let totalWeightedScore = 0; // Điểm số tổng đã tính trọng số ưu tiên
+        let displayScore = 0;       // Tổng sát thương thực tế để hiển thị ra giao diện
+        let attackerLogs = [];
+
+        opponents.forEach(defender => {
+            let attackStat = (attacker.moveCategory === 'Special') ? attacker.spa : attacker.atk;
+            let defenseStat = (attacker.moveCategory === 'Special') ? defender.spd : defender.def;
+
+            if (attackStat === 0) attackStat = 10;
+            if (defenseStat === 0) defenseStat = 10;
+
+            let m1 = getModifier(attacker.moveType, defender.type1);
+            let m2 = defender.type2 ? getModifier(attacker.moveType, defender.type2) : 1;
+            let finalModifier = m1 * m2;
+
+            let singleDamage = Math.round((attackStat / defenseStat) * 50 * finalModifier);
+            displayScore += singleDamage;
+
+            // ==================== CẢI TIẾN TRỌNG SỐ THUẬT TOÁN ĐỀ XUẤT ====================
+            let rarityWeight = 1.0;
+            if (defender.rarity === "6-Star") {
+                rarityWeight = 5.0;  // Ưu tiên cực cao cho mục tiêu 6 sao (Boss)
+            } else if (defender.rarity === "5-Star") {
+                rarityWeight = 2.5;  // Ưu tiên vừa phải cho 5 sao
+            } else if (defender.rarity === "4-Star") {
+                rarityWeight = 1.0;  // Giữ nguyên hệ số cơ bản cho các mục tiêu phụ
+            } else {
+                rarityWeight = 0.5;  // Giảm độ ưu tiên đối với các mục tiêu quá yếu (3*, 2*)
+            }
+
+            totalWeightedScore += (singleDamage * rarityWeight);
+            // ==============================================================================
+
+            attackerLogs.push({
+                defName: defender.name,
+                defSerial: defender.serialCode,
+                atkStat: attackStat,
+                defStat: defenseStat,
+                mod: finalModifier,
+                dmg: singleDamage
+            });
+        });
+
+        // Trả về đối tượng với score dùng để sắp xếp (sort), nhưng vẫn giữ displayScore để in ra màn hình
+        return { ...attacker, score: displayScore, weightedScore: totalWeightedScore, logs: attackerLogs };
+    });
+
+    // Sắp xếp danh sách dựa trên điểm trọng số chiến thuật (weightedScore) thay vì sát thương thô
+    scoredPokemon.sort((a, b) => b.weightedScore - a.weightedScore);
+    let best3 = scoredPokemon.slice(0, 3);
+
+    displayResults(best3);
+    renderFormulaLog(best3);
+}
 
     function displayResults(best3) {
         const resultContainer = document.getElementById('result-container');
