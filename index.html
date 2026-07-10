@@ -47,36 +47,78 @@
         .type-Dragon { background-color: #6F35FC; } .type-Dark { background-color: #705746; }
         .type-Steel { background-color: #B7B7CE; } .type-Fairy { background-color: #D685AD; }
 
-        /* Watermark bên lề TRÁI */
+        /* ==================== WATERMARK CHO MÀN HÌNH PC ==================== */
         body::before {
             content: "Developed by -Vu Luca-";
             position: fixed;
-            left: 20px;                 /* Cố định sát mép trái */
+            left: 20px;                 /* Cố định sát mép trái trên PC */
             top: 50%;
-            transform: translateY(-50%) rotate(-90deg); /* Xoay dọc chữ theo viền màn hình */
-            font-size: 1.5rem;          /* Thu nhỏ kích thước cho vừa viền lề */
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 1.4rem;
             font-weight: bold;
             font-family: 'Arial', sans-serif;
-            color: rgba(0, 0, 0, 0.3);  /* Độ mờ 30% */
+            color: rgba(0, 0, 0, 0.1);  /* Độ mờ chìm nhẹ */
             pointer-events: none;
             z-index: 9999;
             white-space: nowrap;
         }
 
-        /* Watermark bên lề PHẢI */
         body::after {
             content: "Developed by -Vu Luca-";
             position: fixed;
-            right: 20px;                /* Cố định sát mép phải */
+            right: 20px;                /* Cố định sát mép phải trên PC */
             top: 50%;
-            transform: translateY(-50%) rotate(90deg);  /* Xoay dọc chữ xuôi theo viền màn hình */
-            font-size: 1.5rem;
+            transform: translateY(-50%) rotate(90deg);
+            font-size: 1.4rem;
             font-weight: bold;
             font-family: 'Arial', sans-serif;
-            color: rgba(0, 0, 0, 0.3);
+            color: rgba(0, 0, 0, 0.1);
             pointer-events: none;
             z-index: 9999;
             white-space: nowrap;
+        }
+
+        /* Khối nội dung chính */
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ==================== CẤU HÌNH TỰ ĐỘNG FIX TRÊN MOBILE & TABLET ==================== */
+        @media screen and (max-width: 1024px) {
+            /* 1. Xóa bỏ hoàn toàn 2 chữ watermark dọc ở hai bên viền (vì mobile không có viền) */
+            body::before {
+                display: none;
+            }
+            body::after {
+                /* 2. Biến đổi chữ thành một dòng ghi chú nhỏ nằm cố định dưới đáy màn hình điện thoại */
+                content: "Developed by -Vu Luca-";
+                position: fixed;
+                bottom: 8px;            /* Nằm sát dưới đáy */
+                left: 0;
+                right: 0;
+                top: auto;              /* Hủy bỏ căn giữa dọc */
+                transform: none;        /* Hủy bỏ xoay dọc chữ */
+                font-size: 0.75rem;     /* Thu nhỏ kích thước chữ siêu gọn */
+                text-align: center;     /* Căn giữa dòng */
+                color: rgba(0, 0, 0, 0.3); /* Độ mờ vừa phải để đọc được ở dưới đáy */
+                background: rgba(255, 255, 255, 0.85); /* Tạo một lớp nền mờ phía sau chữ để không bị lẫn vào nút bấm bên dưới */
+                padding: 4px 0;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+                border-top: 1px solid rgba(0,0,0,0.05);
+            }
+            
+            /* 3. Đẩy nhẹ khoảng trống dưới cùng của container để nội dung không bị dòng chữ đáy che mất khi cuộn */
+            .container {
+                margin-bottom: 40px; 
+            }
         }
     </style>
 </head>
